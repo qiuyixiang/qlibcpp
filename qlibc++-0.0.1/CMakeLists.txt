@@ -4,5 +4,7 @@ project(qlibc___0_0_1)
 set(CMAKE_CXX_STANDARD 11)
 
 add_executable(qlibc___0_0_1 main.cpp
+        test/test.h
         include/utility/pair.h
+        include/utility.h
 )
