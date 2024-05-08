@@ -3,4 +3,6 @@ project(qlibc___0_0_1)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(qlibc___0_0_1 main.cpp)
+add_executable(qlibc___0_0_1 main.cpp
+        include/utility/pair.h
+)
