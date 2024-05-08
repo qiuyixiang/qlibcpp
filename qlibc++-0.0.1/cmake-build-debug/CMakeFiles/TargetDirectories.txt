@@ -1,3 +1,0 @@
-/Users/qiuyixiang/CS/Coding/Project/Standard-Library/qlibc++/qlibc++-0.0.1/cmake-build-debug/CMakeFiles/qlibc___0_0_1.dir
-/Users/qiuyixiang/CS/Coding/Project/Standard-Library/qlibc++/qlibc++-0.0.1/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/qiuyixiang/CS/Coding/Project/Standard-Library/qlibc++/qlibc++-0.0.1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
