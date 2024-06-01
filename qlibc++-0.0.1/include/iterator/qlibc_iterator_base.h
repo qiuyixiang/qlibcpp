@@ -68,9 +68,9 @@ namespace __qlibc__{
     /// This Helper Function is outside ISO C++ Standard
     template<typename _Iterator1, typename _Iterator2>
     inline QLIBC_CONSTEXPR bool
-    __is_same_type_iterator(const _Iterator1&, const _Iterator2&){
-        return qlibc::is_same<decltype(qlibc::iterator_traits<_Iterator1>::iterator_category),
-                decltype(qlibc::iterator_traits<_Iterator2>::iterator_category)>();
+    __is_same_iterator_category(const _Iterator1&, const _Iterator2&){
+        return qlibc::is_same<typename qlibc::iterator_traits<_Iterator1>::iterator_category,
+                typename qlibc::iterator_traits<_Iterator2>::iterator_category>();
     }
 }
 
