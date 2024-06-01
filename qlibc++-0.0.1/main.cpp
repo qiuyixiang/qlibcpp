@@ -22,17 +22,38 @@
 
 /// Include For GNU glibc++ (For Compare)
 #include <iostream>
-
+#include <type_traits>
+#include <iterator>
+#include <queue>
 
 /// Include For Test Cases
 #include "test/test.h"
 
 /// Include For qlibc++ Header File !
 #include "include/utility.h"
+#include "include/iterator.h"
+#include "include/type_traits.h"
 
-/// Test Cases
+///########### Test Case For Meta-Programming ###################
 
-/// Test For Utility
+/// Test Case For Type Traits
+TEST_CASE(type_traits){
+    EXPECT((std::is_same<int, int>::value));
+    EXPECT_EQUAL((qlibc::is_same<int, int>::value), true);
+    EXPECT_EQUAL((qlibc::is_same<int, double>::value), false);
+    EXPECT_EQUAL((qlibc::is_same<int, double>()), false);
+    EXPECT_EQUAL((qlibc::is_same<int*, double*>()), false);
+}
+///########### Test Case For Iterator ###################
+
+/// Test Case For Base Iterator
+TEST_CASE(iterator){
+    int * int_ptr = nullptr;
+    auto Iter_type = __qlibc__::__iterator_category(int_ptr);
+    EXPECT((std::is_same<qlibc::random_access_iterator_tag(), qlibc::random_access_iterator_tag()>::value));
+    EXPECT((std::is_same<qlibc::random_access_iterator_tag, decltype(Iter_type)>::value));
+
+}
 
 int main(int argc, char * argv[]) {
 

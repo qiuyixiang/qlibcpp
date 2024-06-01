@@ -1,6 +1,6 @@
-#ifndef QLIBCPP_UTILITY
-#define QLIBCPP_UTILITY 1
+#ifndef QLIBC___0_0_1_UTILITY_H
+#define QLIBC___0_0_1_UTILITY_H
 
-#include "utility/pair.h"
 
-#endif
+
+#endif //QLIBC___0_0_1_UTILITY_H
