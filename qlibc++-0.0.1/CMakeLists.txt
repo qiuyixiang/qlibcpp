@@ -11,5 +11,6 @@ add_executable(qlibc___0_0_1 main.cpp
         include/memory/qlibc_allocator.h
         include/memory.h
         include/memory/qlibc_uninitialized.h
-        include/memory/qlibc_new.h
+        include/memory/qlibc_construct.h
+        include/utility/qlibc_move.h
 )

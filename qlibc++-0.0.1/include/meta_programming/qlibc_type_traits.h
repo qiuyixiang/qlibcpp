@@ -36,6 +36,32 @@ namespace qlibc{
 
     template<typename _Tp>
     struct is_same<_Tp, _Tp> : public qlibc::true_type  { };
+
+    /// remove_reference
+    template<typename _Tp>
+    struct remove_reference{
+        typedef _Tp type;
+    };
+    template<typename _Tp>
+    struct remove_reference<_Tp&>{
+        typedef _Tp type;
+    };
+    template<typename _Tp>
+    struct remove_reference<_Tp&&>{
+        typedef _Tp type;
+    };
+
+    template<typename _Tp>
+    struct is_lvalue_reference : public false_type { };
+
+    template<typename _Tp>
+    struct is_lvalue_reference<_Tp&> : public true_type { };
+
+    template<typename _Tp>
+    struct is_rvalue_reference : public false_type { };
+
+    template<typename _Tp>
+    struct is_rvalue_reference<_Tp&&> : public true_type { };
 }
 
 #endif //QLIBC___0_0_1_QLIBC_TYPE_TRAITS_H
