@@ -2,8 +2,7 @@
 #define QLIBC___0_0_1_C_CONFIG_H
 #include <type_traits>
 
-#define QLIBC_USED_STD  11
-
+#define QLIBC_USED_STD      11
 namespace qlibc{
 
 /// Some Utility Function
@@ -27,6 +26,9 @@ namespace _extern{
 
     template<typename _Tp>
     using __is_nothrow_destructible__ = std::is_nothrow_destructible<_Tp>;
+
+    template<typename _Tp>
+    using __is_trivial_copy_assignemnt__ = std::is_trivially_copy_assignable<_Tp>;
 }
 
 namespace _extern{

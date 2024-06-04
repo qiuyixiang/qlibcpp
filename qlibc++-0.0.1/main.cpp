@@ -20,6 +20,9 @@
 /// Project Create on : 2024-05-08
 /// Copyright : @QiuYiXiang (All Rights Reversed)
 
+/// Macros For Debugger Just Ignore It
+#undef QLIBC_DEBUG_INFO
+#define QLIBC_DEBUG_INFO 1
 /// Include For GNU glibc++ (For Compare)
 #include <iostream>
 #include <type_traits>
@@ -27,6 +30,8 @@
 #include <new>
 #include <queue>
 #include <memory>
+#include <algorithm>
+#include <numeric>
 
 /// Include For Test Cases
 #include "test/test.h"
@@ -36,6 +41,7 @@
 #include "include/iterator.h"
 #include "include/type_traits.h"
 #include "include/memory.h"
+#include "include/algorithm.h"
 
 ///########### Test Case For Meta-Programming ###################
 /// Test Case For Type Traits
@@ -189,6 +195,70 @@ TEST_CASE(utility){
     EXPECT(qlibc::is_rvalue_reference<decltype(qlibc::move(l_val_reference))>::value);
 
 }
+
+///########### Test Case For Algorithm ###################
+class algorithm_trivial_copy_assignment{
+    friend QLIBC_CONSTEXPR bool operator==(const algorithm_trivial_copy_assignment& lhs,
+                                           const algorithm_trivial_copy_assignment& rhs);
+private:
+    unsigned int _data;
+public:
+    constexpr algorithm_trivial_copy_assignment() QLIBC_NOEXCEPT: _data{} { };
+    explicit QLIBC_CONSTEXPR algorithm_trivial_copy_assignment(unsigned int _A) QLIBC_NOEXCEPT
+    : _data(_A) { };
+    ~algorithm_trivial_copy_assignment() = default;
+};
+QLIBC_CONSTEXPR bool operator==(const algorithm_trivial_copy_assignment& lhs,
+        const algorithm_trivial_copy_assignment& rhs){
+    return lhs._data == rhs._data;
+}
+QLIBC_CONSTEXPR bool operator!=(const algorithm_trivial_copy_assignment& lhs,
+                                const algorithm_trivial_copy_assignment& rhs){
+    return !(lhs == rhs);
+}
+/// Test Case For Base Algorithm
+TEST_CASE(alogrithm_base){
+    /// Test fill()
+    auto INT_ptr = new int [10];
+    qlibc::fill(INT_ptr, INT_ptr + 10, 5);
+    qlibc::fill_n(INT_ptr, 10, 5);
+    int int_array[10] = {5,5,5,5,5,5,5,5,5,5};
+    EXPECT(_extern::expect_range(INT_ptr, INT_ptr + 10, &int_array[0]));
+    delete[] INT_ptr;
+    /// Test max() mini()
+    EXPECT_EQUAL(qlibc::max(10, 20), 20);
+    EXPECT_EQUAL(qlibc::max(3.424, 9.453), 9.453);
+    EXPECT_EQUAL(qlibc::min(10, 20), 10);
+    EXPECT_EQUAL(qlibc::min(std::string {"hello"}, std::string{"a"}), std::string{"a"});
+    /// Test swap()
+    int lhs = 10;
+    int rhs = 20;
+    qlibc::swap(lhs, rhs);
+    EXPECT_EQUAL(rhs, 10);
+    EXPECT_EQUAL(lhs, 20);
+    /// Test copy
+    auto NEW_INT_ptr = new int [10];
+    int INT_buffer[] = {1,2,3,4,5,6,7,8,9,10};
+    qlibc::copy(&INT_ptr[0], &INT_ptr[1], NEW_INT_ptr);
+    EXPECT(qlibc::equal(NEW_INT_ptr, NEW_INT_ptr + 10, INT_ptr));
+    delete []NEW_INT_ptr;
+
+    auto NEW_CHAR_ptr = new char [11];
+    const char CHAR_buffer[11] = "QIUYIXIANG";
+    qlibc::copy(CHAR_buffer, CHAR_buffer + 11, NEW_CHAR_ptr);
+    EXPECT(qlibc::equal(NEW_CHAR_ptr, NEW_CHAR_ptr + 11, CHAR_buffer));
+    delete[] NEW_CHAR_ptr;
+
+    EXPECT(std::is_trivially_copy_assignable<algorithm_trivial_copy_assignment>::value);
+    auto TR_CLASS_ptr = new algorithm_trivial_copy_assignment[3];
+    using ATC_A = algorithm_trivial_copy_assignment;
+    algorithm_trivial_copy_assignment TR_CLASS_buffer[3] =
+            {ATC_A(10), ATC_A(20), ATC_A(30)};
+    qlibc::copy(TR_CLASS_buffer, TR_CLASS_buffer + 3, TR_CLASS_ptr);
+    EXPECT(qlibc::equal(TR_CLASS_ptr, TR_CLASS_ptr + 3, TR_CLASS_buffer));
+    delete[] TR_CLASS_ptr;
+}
+
 int main(int argc, char * argv[]) {
     /// Run All Test Cases
     RUN_ALL_TEST()
