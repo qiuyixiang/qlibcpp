@@ -10,6 +10,10 @@ namespace qlibc{
 #define QLIBC_CONSTEXPR     constexpr
 #define QLIBC_EXPLICIT      explicit
 
+#define QLIBC_THROW_EXCEPTION           throw
+#define QLIBC_THROW_EXCEPTION_AGAIN     QLIBC_THROW_EXCEPTION
+#define QLIBC_ALL_EXCEPTION             ...
+
 
     /// Type define For New-Used Type
     using size_t = unsigned long;
@@ -29,6 +33,9 @@ namespace _extern{
 
     template<typename _Tp>
     using __is_trivial_copy_assignemnt__ = std::is_trivially_copy_assignable<_Tp>;
+
+    template<typename _Tp>
+    using __is_pod_type__   =   std::is_pod<_Tp>;
 }
 
 namespace _extern{

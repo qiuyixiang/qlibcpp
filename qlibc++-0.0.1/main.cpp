@@ -41,6 +41,7 @@
 #include "include/iterator.h"
 #include "include/type_traits.h"
 #include "include/memory.h"
+#include "include/numeric.h"
 #include "include/algorithm.h"
 
 ///########### Test Case For Meta-Programming ###################
@@ -146,6 +147,18 @@ TEST_CASE(memory){
     allocator_class.destroy(class_ptr, class_ptr + 10);
     EXPECT_EQUAL(memory_test_class_delete_complete::__destroy_counter, 10);
     allocator_class.deallocate(class_ptr);
+
+    /// Test Case For Uninitialized_XXX Function
+    auto result_INT = allocator_INT.allocate(10);
+    qlibc::uninitialized_fill_n(result_INT, 10, 1024);
+    EXPECT_EQUAL(result_INT[5], 1024);
+    allocator_INT.deallocate(result_INT);
+
+    auto result_INT_1 = allocator_INT.allocate(10);
+    int INT_copy_buffer[10] = {1,2,3,4,5,6,7,8,9,10};
+    qlibc::uninitialized_copy(INT_copy_buffer, INT_copy_buffer + 10, result_INT_1);
+    EXPECT(qlibc::equal(result_INT_1, result_INT_1 + 10, INT_copy_buffer));
+    allocator_INT.deallocate(result_INT_1);
 }
 
 ///########### Test Case For Utility ###################
@@ -258,7 +271,19 @@ TEST_CASE(alogrithm_base){
     EXPECT(qlibc::equal(TR_CLASS_ptr, TR_CLASS_ptr + 3, TR_CLASS_buffer));
     delete[] TR_CLASS_ptr;
 }
-
+/// Test Case For Numeric Algorithm
+TEST_CASE(numeric){
+    std::vector<int>int_vector {1,2,3,4,5,6,7,8,9,10};
+    EXPECT_EQUAL(std::accumulate(int_vector.begin(), int_vector.end(), 0),
+                 qlibc::accumulate(int_vector.begin(),int_vector.end(), 0));
+    auto my_product_lambda = [](int lhs, int rhs) -> int {
+        return lhs * rhs;
+    };
+    EXPECT_EQUAL(std::accumulate(int_vector.begin(), int_vector.end(), 1,
+                                 my_product_lambda),
+                 qlibc::accumulate(int_vector.begin(), int_vector.end(), 1,
+                                   my_product_lambda));
+}
 int main(int argc, char * argv[]) {
     /// Run All Test Cases
     RUN_ALL_TEST()

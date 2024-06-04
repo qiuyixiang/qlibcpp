@@ -18,4 +18,7 @@ add_executable(qlibc___0_0_1 main.cpp
         include/algorithm/qlibc_algo.h
         include/algorithm.h
         include/numeric.h
+        include/container/associative_container/qlibc_vector.h
+        include/container/_C_dep.h
+        include/vector.h
 )
