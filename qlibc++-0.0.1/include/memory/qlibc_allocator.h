@@ -42,8 +42,14 @@ namespace __qlibc__{
         QLIBC_CONSTEXPR __allocator() QLIBC_NOEXCEPT = default;
         ~__allocator() QLIBC_NOEXCEPT = default;
 
-        __allocator(const __allocator& ) QLIBC_NOEXCEPT = default;
+        QLIBC_CONSTEXPR __allocator(const __allocator& ) QLIBC_NOEXCEPT = default;
+        __allocator& operator=(const __allocator&) QLIBC_NOEXCEPT = default;
 
+        QLIBC_CONSTEXPR __allocator(__allocator&&) QLIBC_NOEXCEPT = default;
+        __allocator& operator=(__allocator&& ) QLIBC_NOEXCEPT = default;
+
+        template<typename _Up>
+        __allocator(const __allocator<_Up>&) QLIBC_NOEXCEPT { }
     public:
         pointer allocate(size_type __n);
         void deallocate(pointer __ptr);
@@ -126,10 +132,59 @@ namespace __qlibc__{
     __allocator<_Tp>::max_size() const QLIBC_NOEXCEPT {
         return size_type(-1) / sizeof(_Tp);
     }
+
+    /// Allocator Traits For C++11
+    template<typename _Allocator>
+    struct allocator_traits{
+        typedef _Allocator                              allocator_type;
+        typedef typename _Allocator::value_type         value_type;
+        typedef typename _Allocator::pointer            pointer;
+        typedef typename _Allocator::const_pointer      const_pointer;
+        typedef typename _Allocator::reference          reference;
+        typedef typename _Allocator::const_reference    const_reference;
+        typedef typename _Allocator::difference_type    difference_type;
+        typedef typename _Allocator::size_type          size_type;
+
+        typedef void *          void_pointer;
+        typedef const void *    const_void_pointer;
+        template<typename _Up>
+        using rebind_allocator_type = typename _Allocator::template rebind<_Up>::other;
+
+        static inline QLIBC_CONSTEXPR pointer allocate(size_type __n, const _Allocator& _allocator);
+        static inline void deallocate(pointer __ptr, const _Allocator& _allocator);
+
+        template<typename _Tp, typename..._Args>
+        static void construct(_Tp* __ptr, _Args&&... __args, const _Allocator& _allocator);
+
+        template<typename _Tp>
+        static void destroy(_Tp * __ptr ,const _Allocator& _allocator);
+    };
+    template<typename _Allocator>
+    QLIBC_CONSTEXPR typename allocator_traits<_Allocator>:: pointer
+    allocator_traits<_Allocator>::allocate(allocator_traits::size_type __n, const _Allocator &_allocator) {
+        return _allocator.allocate(__n);
+    }
+    template<typename _Allocator>
+    void allocator_traits<_Allocator>::deallocate(pointer __ptr, const _Allocator &_allocator) {
+        _allocator.deallocate(__ptr);
+    }
+    template<typename _Allocator>
+    template<typename _Tp, typename..._Args>
+    void allocator_traits<_Allocator>::construct(_Tp *__ptr, _Args &&...__args, const _Allocator &_allocator) {
+        _allocator.construct(__ptr, qlibc::forward<decltype(__args)>(__args)...);
+    }
+    template<typename _Allocator>
+    template<typename _Tp>
+    void allocator_traits<_Allocator>::destroy(_Tp *ptr, const _Allocator &_allocator) {
+        _allocator.destroy(ptr);
+    }
 }
 namespace qlibc{
 
     template<typename _Tp>
     using allocator = __qlibc__::__allocator<_Tp>;
+
+    template<typename Allocator>
+    using allocator_traits = __qlibc__::allocator_traits<Allocator>;
 }
 #endif //QLIBC___0_0_1_QLIBC_ALLOCATOR_H

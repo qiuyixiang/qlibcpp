@@ -16,4 +16,16 @@
 #include "../memory/qlibc_uninitialized.h"
 #include "../utility/qlibc_move.h"
 
+#include <initializer_list>
+#include <iostream>
+
+namespace __qlibc__{
+    template<typename __NAME>
+    using _initialized_list =  std::initializer_list<__NAME>;
+
+/// These Macros Are Used To Replace std::IO By qlibc::IO In the Future
+#define OSTREAM     std::ostream
+#define STD_COUT    std::cout
+}
+
 #endif //QLIBC___0_0_1__C_DEP_H

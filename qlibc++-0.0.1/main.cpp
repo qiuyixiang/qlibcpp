@@ -22,7 +22,7 @@
 
 /// Macros For Debugger Just Ignore It
 #undef QLIBC_DEBUG_INFO
-#define QLIBC_DEBUG_INFO 1
+#define QLIBC_DEBUG_INFO 0
 /// Include For GNU glibc++ (For Compare)
 #include <iostream>
 #include <type_traits>
@@ -42,6 +42,7 @@
 #include "include/type_traits.h"
 #include "include/memory.h"
 #include "include/numeric.h"
+#include "include/vector.h"
 #include "include/algorithm.h"
 
 ///########### Test Case For Meta-Programming ###################
@@ -159,6 +160,13 @@ TEST_CASE(memory){
     qlibc::uninitialized_copy(INT_copy_buffer, INT_copy_buffer + 10, result_INT_1);
     EXPECT(qlibc::equal(result_INT_1, result_INT_1 + 10, INT_copy_buffer));
     allocator_INT.deallocate(result_INT_1);
+
+    typedef qlibc::allocator_traits<qlibc::allocator<int>>::rebind_allocator_type<double> double_allocator;
+    double_allocator doubleAllocator;
+    auto ded_ptr = doubleAllocator.allocate(1);
+    *ded_ptr = 34.34;
+    EXPECT_EQUAL(*ded_ptr, 34.34);
+    doubleAllocator.deallocate(ded_ptr);
 }
 
 ///########### Test Case For Utility ###################
@@ -283,6 +291,40 @@ TEST_CASE(numeric){
                                  my_product_lambda),
                  qlibc::accumulate(int_vector.begin(), int_vector.end(), 1,
                                    my_product_lambda));
+}
+/// Test Case For Algorithm
+TEST_CASE(algorithm){
+    std::vector<int>Vector_INT {1,2,3,4,5,6,7};
+    EXPECT_EQUAL(*(std::find(Vector_INT.begin(), Vector_INT.end(), 6)), 6);
+}
+
+///########### Test Case For Container ###################
+
+/// Test Case For Vector
+TEST_CASE(vector){
+    std::vector<int>STD_vector = {1,2,3,4,5,6,7,8};
+    EXPECT(STD_vector.begin() == STD_vector.begin());
+    auto STD_vector_begin = STD_vector.begin();
+    EXPECT_EQUAL(*STD_vector_begin, 1);
+    qlibc::normal_iterator<int>begin1 = &STD_vector[0];
+    auto begin2 = begin1;
+    EXPECT((begin1 == begin2));
+    EXPECT(!(begin1 != begin2));
+    ++begin2;
+    EXPECT_EQUAL((*begin2), 2);
+    EXPECT_EQUAL(*(begin2 - 1), *begin1);
+    EXPECT_EQUAL(begin1[3], 4);
+    ++begin1;
+    EXPECT_EQUAL(begin1, begin2);
+    begin1 += 3;
+    EXPECT_EQUAL(*begin1, 5);
+
+    qlibc::vector<int>vector_int = {1,2,3,4,5,6,7,8,9};
+    /// std::cout << vector_int <<"\n";
+    EXPECT_EQUAL(vector_int[3], 4);
+    EXPECT(vector_int.size() == 9);
+    EXPECT(vector_int.capacity() == 9);
+    EXPECT_EQUAL(qlibc::distance(vector_int.begin(), vector_int.end()), 9);
 }
 int main(int argc, char * argv[]) {
     /// Run All Test Cases

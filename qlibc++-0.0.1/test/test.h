@@ -36,4 +36,5 @@ void _MACRO_JOIN(fqlibcpp, _)()
    std::cout<<"Passed Total : "<<__test_counter << " / "                        \
    << __test_counter <<"  Test Cases !!"<<std::endl;
 
+
 #endif
