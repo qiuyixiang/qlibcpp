@@ -26,6 +26,7 @@ namespace __qlibc__{
 /// These Macros Are Used To Replace std::IO By qlibc::IO In the Future
 #define OSTREAM     std::ostream
 #define STD_COUT    std::cout
+#define STD_CERROR  std::cerr
 }
 
 #endif //QLIBC___0_0_1__C_DEP_H

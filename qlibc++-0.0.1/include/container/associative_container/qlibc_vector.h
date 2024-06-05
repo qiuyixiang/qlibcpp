@@ -40,6 +40,11 @@ namespace __qlibc__{
             this->_M_end_of_storage = this->_M_finish;
             qlibc::uninitialized_fill(this->_M_start, this->_M_finish, __val);
         }
+        template<typename _InputIterator>
+        _Vector_Imp(_InputIterator __first, _InputIterator __last)
+        : _Vector_Imp(qlibc::distance(__first, __last)){
+                qlibc::copy(__first, __last, this->_M_start);
+        }
         ~_Vector_Imp(){
             /// Judge Whether the Vector is Empty
             if (this->_M_start != this->_M_finish){
@@ -101,7 +106,7 @@ namespace __qlibc__{
     template<typename _Tp>
     _vector_iterator<_Tp>& _vector_iterator<_Tp>::operator=(const _vector_iterator&_other) {
         if (this != &_other)
-            this->M_base = _other->M_base;
+            this->M_base = _other.base();
         return *this;
     }
     template<typename _Tp>
@@ -182,8 +187,16 @@ namespace qlibc{
         explicit vector(size_type n) : _Base_Vector(n) { }
         vector(size_type n, const value_type& _value) : _Base_Vector(n, _value) { }
         vector(const std::initializer_list<_Tp>& _li) : _Base_Vector(_li) { }
+        template<typename _InputIterator>
+        vector(_InputIterator __first, _InputIterator __last) : _Base_Vector(__first, __last) { }
 
         ~vector() = default;
+    private:
+        enum {EXPAND_SIZE_FACTOR = 2};
+        void _require_non_empty() QLIBC_NOEXCEPT;
+        QLIBC_CONSTEXPR size_type _storage_can_be_used() const QLIBC_NOEXCEPT;
+        template<typename... _Args>
+        void _emplace_back_auxiliary(_Args&&... _args);
     public:
         iterator begin() QLIBC_NOEXCEPT;
         iterator end() QLIBC_NOEXCEPT;
@@ -198,7 +211,147 @@ namespace qlibc{
         QLIBC_CONSTEXPR bool empty() const QLIBC_NOEXCEPT;
         QLIBC_CONSTEXPR size_type capacity() const QLIBC_NOEXCEPT;
         reference operator[](difference_type __n) const QLIBC_NOEXCEPT;
+
+        reference back()  QLIBC_NOEXCEPT;
+        reference front()  QLIBC_NOEXCEPT;
+
+        void clear();
+        void pop_back();
+        void push_back(const value_type& value);
+        void push_back(value_type&& value);
+
+        template<typename... _Args>
+        void emplace_back(_Args&&... __args);
+
+        iterator erase(const_iterator __position);
+        iterator erase(const_iterator __first, const_iterator __last);
+
+        iterator insert(const_iterator __position, const value_type& __value);
+        iterator insert(const_iterator __position, value_type&& __value);
+        iterator insert(const_iterator __position, size_type __count, const _Tp& __value);
+        template<typename _InputIterator>
+        iterator insert(iterator __position, _InputIterator __first, _InputIterator __last);
+        iterator insert(const_iterator __position, const std::initializer_list<value_type>& li);
     };
+
+    /// TODO Start:
+    /// Insert
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+            ::insert(vector::const_iterator __position, const vector::value_type &__value) {
+
+    }
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+    ::insert(vector::const_iterator __position, value_type&& __value) {
+
+    }
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+    ::insert(vector::const_iterator __position, size_type __count, const _Tp& __value) {
+
+    }
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+    ::insert(vector::const_iterator __position, const std::initializer_list<value_type>& li) {
+
+    }
+    template<typename _Tp, typename _Alloc>
+    template<typename _InputIterator>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+    ::insert(iterator __position, _InputIterator __first, _InputIterator __last) {
+
+    }
+    /// Erase
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+            ::erase(vector::const_iterator __first, vector::const_iterator __last) {
+
+    }
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::erase(vector::const_iterator position) {
+
+    }
+    /// TODO End !
+    template<typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::pop_back() {
+        if (!this->empty()){
+            --this->_M_finish;
+            __qlibc__::_Destroy(this->_M_finish);
+        }
+    }
+    template<typename _Tp, typename _Alloc>
+    template<typename... _Args>
+    void vector<_Tp, _Alloc>::_emplace_back_auxiliary(_Args &&... _args) {
+        const size_type _old_size = this->size();
+        const size_type _new_size = (_old_size == 0) ? 1 : this->size() * EXPAND_SIZE_FACTOR;
+        pointer _new_start = this->_M_get_allocator().allocate(_new_size);
+        auto _new_finish = _new_start;
+        try {
+            _new_finish = qlibc::uninitialized_copy(this->_M_start, this->_M_finish, _new_start);
+            __qlibc__::_Construct(_new_finish, qlibc::forward<decltype(_args)>(_args)...);
+            ++_new_finish;
+        } catch (QLIBC_ALL_EXCEPTION) {
+            __qlibc__::_Destroy(_new_start, _new_finish);
+            this->_M_get_allocator().deallocate(_new_start);
+            QLIBC_THROW_EXCEPTION_AGAIN;
+        }
+        __qlibc__::_Destroy(this->_M_start, this->_M_finish);
+        this->_M_get_allocator().deallocate(this->_M_start);
+        this->_M_start = _new_start;
+        this->_M_finish = _new_finish;
+        this->_M_end_of_storage = this->_M_start + _new_size;
+    }
+    template<typename _Tp, typename _Alloc>
+    template<typename... _Args>
+    void vector<_Tp, _Alloc>::emplace_back(_Args&&... __args) {
+        if (this->_storage_can_be_used()){
+            __qlibc__::_Construct(this->_M_finish, qlibc::forward<decltype(__args)>(__args)...);
+            ++this->_M_finish;
+        }else
+            this->_emplace_back_auxiliary(qlibc::forward<decltype(__args)>(__args)...);
+    }
+    template<typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::push_back(vector::value_type &&value) {
+        this->emplace_back(qlibc::move(value));
+    }
+    template<typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::push_back(const vector::value_type &value) {
+        this->emplace_back(value);
+    }
+    template<typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::clear() {
+        if (!this->empty()){
+            __qlibc__::_Destroy(this->_M_start, this->_M_finish);
+            this->_M_get_allocator().deallocate(this->_M_start);
+        }
+        this->_M_start = nullptr;
+        this->_M_finish = nullptr;
+        this->_M_end_of_storage = nullptr;
+    }
+    template<typename _Tp, typename _Alloc>
+    QLIBC_CONSTEXPR typename vector<_Tp, _Alloc>::size_type vector<_Tp, _Alloc>::
+            _storage_can_be_used() const QLIBC_NOEXCEPT {
+        return this->capacity() - this->size();
+    }
+
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::reference vector<_Tp, _Alloc>::front() QLIBC_NOEXCEPT {
+        this->_require_non_empty();
+        return *(this->_M_start);
+    }
+    template<typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::reference vector<_Tp, _Alloc>::back() QLIBC_NOEXCEPT {
+        this->_require_non_empty();
+        return *(this->_M_finish - 1);
+    }
+    template<typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::_require_non_empty() QLIBC_NOEXCEPT{
+        if (this->_M_start == this->_M_finish){
+            STD_CERROR << "Try To Access The Element of Empty Container\n";
+            exit(-1);
+        }
+    }
     template<typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::end() QLIBC_NOEXCEPT {
         return iterator (this->_M_finish);
@@ -242,14 +395,23 @@ namespace qlibc{
     /// Operator Overload For Vector !
     template<typename _Tp, typename _Alloc>
     OSTREAM& operator<<(OSTREAM & OS, const vector<_Tp, _Alloc>& buffer){
-        STD_COUT << "[";
+        OS << "[";
         for (auto _Iter = buffer.begin(); _Iter != buffer.end(); ){
-            STD_COUT << *_Iter;
+            OS << *_Iter;
             ++_Iter;
             if (_Iter != buffer.end())
-                STD_COUT<< ", ";
+                OS<< ", ";
         }
-        STD_COUT << "]";
+        OS << "]";
+        return OS;
+    }
+    template<typename _Tp, typename _Alloc>
+    inline bool operator==(const vector<_Tp, _Alloc>& _lhs, const vector<_Tp, _Alloc>& _rhs){
+        return _lhs.size() == _rhs.size() && qlibc::equal(_lhs.begin(), _lhs.end(), _rhs.begin());
+    }
+    template<typename _Tp, typename _Alloc>
+    inline bool operator!=(const vector<_Tp, _Alloc>& _lhs, const vector<_Tp, _Alloc>& _rhs){
+        return !(_lhs == _rhs);
     }
 }
 #endif //QLIBC___0_0_1_QLIBC_VECTOR_H

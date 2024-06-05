@@ -297,11 +297,10 @@ TEST_CASE(algorithm){
     std::vector<int>Vector_INT {1,2,3,4,5,6,7};
     EXPECT_EQUAL(*(std::find(Vector_INT.begin(), Vector_INT.end(), 6)), 6);
 }
-
 ///########### Test Case For Container ###################
 
 /// Test Case For Vector
-TEST_CASE(vector){
+TEST_CASE(vector1){
     std::vector<int>STD_vector = {1,2,3,4,5,6,7,8};
     EXPECT(STD_vector.begin() == STD_vector.begin());
     auto STD_vector_begin = STD_vector.begin();
@@ -320,11 +319,39 @@ TEST_CASE(vector){
     EXPECT_EQUAL(*begin1, 5);
 
     qlibc::vector<int>vector_int = {1,2,3,4,5,6,7,8,9};
-    /// std::cout << vector_int <<"\n";
+    // std::cout << vector_int <<"\n";
     EXPECT_EQUAL(vector_int[3], 4);
     EXPECT(vector_int.size() == 9);
     EXPECT(vector_int.capacity() == 9);
     EXPECT_EQUAL(qlibc::distance(vector_int.begin(), vector_int.end()), 9);
+    EXPECT(!vector_int.empty());
+    EXPECT_EQUAL(vector_int.front(), 1);
+    EXPECT_EQUAL(vector_int.back(), 9);
+    qlibc::vector<int>vector_copy_int(vector_int.begin(), vector_int.end());
+    EXPECT(qlibc::equal(vector_int.begin(), vector_int.end(), vector_copy_int.begin()));
+    // std::cout << vector_copy_int << "\n";
+    vector_copy_int.clear();
+    EXPECT((vector_copy_int.empty() && !vector_copy_int.capacity()));
+    qlibc::vector<int>New_vector_int = {1,2,3,4,5,6,7,8,9};
+    New_vector_int.push_back(10);
+    EXPECT_EQUAL(New_vector_int.capacity() ,(New_vector_int.size() - 1) * 2);
+    New_vector_int.push_back(11);
+    EXPECT_EQUAL(New_vector_int.capacity() ,18);
+    EXPECT_EQUAL(New_vector_int.back(), 11);
+    EXPECT_EQUAL(New_vector_int.size(), 11);
+    // std::cout << New_vector_int <<"\n";
+    New_vector_int.pop_back();
+    EXPECT_EQUAL(New_vector_int.back(), 10);
+
+    qlibc::vector<int> const_vector = {1,2,3,4,5,6};
+    auto _Iter = const_vector.cbegin();
+    _Iter = const_vector.cend();
+    //*_Iter = 10;
+    std::vector<int>const_std_vector = {1,2,3,4,5};
+    auto _Iter_std = const_std_vector.cbegin();
+    _Iter_std = const_std_vector.cend();
+    //*_Iter_std = 10;
+    EXPECT(!(const_std_vector != STD_vector));
 }
 int main(int argc, char * argv[]) {
     /// Run All Test Cases
