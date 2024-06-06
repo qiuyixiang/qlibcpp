@@ -30,6 +30,8 @@ namespace __qlibc__{
             this->_M_end_of_storage = this->_M_finish;
             qlibc::uninitialized_fill(this->_M_start, this->_M_finish, _Tp());
         }
+        QLIBC_CONSTEXPR _Vector_Imp(_Tp* start, _Tp * _finish, _Tp* end_of_storage) :
+        _M_start(start), _M_finish(_finish), _M_end_of_storage(end_of_storage) { }
         _Vector_Imp(const std::initializer_list<_Tp>& __li) : _Vector_Imp(__li.size()){
             qlibc::uninitialized_copy(__li.begin(), __li.end(), this->_M_start);
         }
@@ -83,9 +85,15 @@ namespace __qlibc__{
         /// constructor
         QLIBC_CONSTEXPR _vector_iterator() QLIBC_NOEXCEPT : M_base{nullptr} { }
         QLIBC_CONSTEXPR _vector_iterator(_Tp* ptr) QLIBC_NOEXCEPT : M_base{ptr} { }
+        template<typename _Up>
+        QLIBC_CONSTEXPR _vector_iterator(const _vector_iterator<_Up>& _other)
+            QLIBC_NOEXCEPT : M_base(const_cast<_element_type*>(_other.base())) { }
 
         _vector_iterator(const _vector_iterator& _other) : M_base(_other.M_base) { }
         _vector_iterator& operator=(const _vector_iterator& _other);
+         operator _vector_iterator<const _Tp>(){
+             return _vector_iterator<const _Tp>(this->M_base);
+         }
         ~_vector_iterator() = default;
 
         _element_type& operator*() const QLIBC_NOEXCEPT { return *(this->M_base); }
@@ -190,6 +198,16 @@ namespace qlibc{
         template<typename _InputIterator>
         vector(_InputIterator __first, _InputIterator __last) : _Base_Vector(__first, __last) { }
 
+        vector(const vector& _other) : _Base_Vector(_other.size()) {
+            qlibc::uninitialized_copy(_other.begin(), _other.end(), this->_M_start);
+        }
+        vector(vector&& _other) QLIBC_NOEXCEPT
+            : _Base_Vector(_other->_M_start, _other->_M_finish, _other->_M_end_of_storage) {
+            _other->_M_start = nullptr;
+            _other->_M_finish = nullptr;
+            _other->_M_end_of_storage = nullptr;
+        }
+        vector& operator=(vector && _other) QLIBC_NOEXCEPT;
         ~vector() = default;
     private:
         enum {EXPAND_SIZE_FACTOR = 2};
@@ -222,6 +240,8 @@ namespace qlibc{
 
         template<typename... _Args>
         void emplace_back(_Args&&... __args);
+        template<typename... _Args>
+        iterator emplace(const_iterator __position, _Args&&... __args);
 
         iterator erase(const_iterator __position);
         iterator erase(const_iterator __first, const_iterator __last);
@@ -234,18 +254,75 @@ namespace qlibc{
         iterator insert(const_iterator __position, const std::initializer_list<value_type>& li);
     };
 
-    /// TODO Start:
+    template<typename _Tp, typename _Alloc>
+    vector<_Tp, _Alloc>&vector<_Tp, _Alloc>::operator=(vector &&_other) QLIBC_NOEXCEPT {
+        if (this != &_other){
+            this->clear();
+            this->_M_start = _other._M_start;
+            this->_M_finish = _other._M_finish;
+            this->_M_end_of_storage = _other._M_end_of_storage;
+            _other->_M_start = nullptr;
+            _other->_M_finish = nullptr;
+            _other->_M_end_of_storage = nullptr;
+        }
+        return *this;
+    }
+    template<typename _Tp, typename _Alloc>
+    template<typename... _Args>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
+            ::emplace(const_iterator __position, _Args &&... __args) {
+        if (this->empty()){
+            this->_emplace_back_auxiliary(qlibc::forward<decltype(__args)>(__args)...);
+            return iterator(this->_M_start);
+        }
+        if (this->_storage_can_be_used()){
+            qlibc::copy_backward(__position, const_iterator(this->_M_finish), this->_M_finish + 1);
+            typedef typename qlibc::iterator_traits<iterator>::value_type Val_Type;
+            /// According To C++ ISO/ANSI Standard
+            /// The emplace function needs to construct an object in-place and move this object to the existing position
+            Val_Type __temp_value(qlibc::forward<decltype(__args)>(__args)...);
+            *const_cast<pointer>(__position.base()) = qlibc::move(__temp_value);
+            ++this->_M_finish;
+            return iterator(__position);
+        } else{
+            const size_t _old_size = this->size();
+            const size_t _new_size = (_old_size == 0) ? 1 : _old_size * EXPAND_SIZE_FACTOR;
+            pointer _new_start = this->_M_get_allocator().allocate(_new_size);
+            auto _new_finish = _new_start;
+            pointer _insert_position;
+            try {
+                _new_finish = qlibc::uninitialized_copy
+                        (const_iterator(this->_M_start), __position, _new_finish);
+                __qlibc__::_Construct(_new_finish, qlibc::forward<decltype(__args)>(__args)...);
+                _insert_position = _new_finish;
+                _new_finish++;
+                _new_finish = qlibc::uninitialized_copy(__position,
+                                                        const_iterator(this->_M_finish),_new_finish);
+            } catch (QLIBC_ALL_EXCEPTION) {
+                __qlibc__::_Destroy(_new_start, _new_finish);
+                this->_M_get_allocator().deallocate(_new_start);
+                QLIBC_THROW_EXCEPTION_AGAIN;
+            }
+            __qlibc__::_Destroy(this->_M_start, this->_M_finish);
+            this->_M_get_allocator().deallocate(this->_M_start);
+            this->_M_start = _new_start;
+            this->_M_finish = _new_finish;
+            this->_M_end_of_storage = this->_M_start + _new_size;
+            return iterator (_insert_position);
+        }
+    }
     /// Insert
     template<typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
             ::insert(vector::const_iterator __position, const vector::value_type &__value) {
-
+        return this->emplace(__position, __value);
     }
     template<typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
     ::insert(vector::const_iterator __position, value_type&& __value) {
-
+        return this->emplace(__position, qlibc::move(__value));
     }
+    /// TODO : Finish These Function
     template<typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
     ::insert(vector::const_iterator __position, size_type __count, const _Tp& __value) {
@@ -262,17 +339,16 @@ namespace qlibc{
     ::insert(iterator __position, _InputIterator __first, _InputIterator __last) {
 
     }
-    /// Erase
     template<typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>
             ::erase(vector::const_iterator __first, vector::const_iterator __last) {
 
     }
     template<typename _Tp, typename _Alloc>
-    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::erase(vector::const_iterator position) {
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::erase(const_iterator __position) {
 
     }
-    /// TODO End !
+    /// TODO End
     template<typename _Tp, typename _Alloc>
     void vector<_Tp, _Alloc>::pop_back() {
         if (!this->empty()){

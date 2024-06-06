@@ -260,8 +260,8 @@ TEST_CASE(alogrithm_base){
     /// Test copy
     auto NEW_INT_ptr = new int [10];
     int INT_buffer[] = {1,2,3,4,5,6,7,8,9,10};
-    qlibc::copy(&INT_ptr[0], &INT_ptr[1], NEW_INT_ptr);
-    EXPECT(qlibc::equal(NEW_INT_ptr, NEW_INT_ptr + 10, INT_ptr));
+    qlibc::copy(&INT_buffer[0], &INT_buffer[10], NEW_INT_ptr);
+    EXPECT(qlibc::equal(NEW_INT_ptr, NEW_INT_ptr + 10, INT_buffer));
     delete []NEW_INT_ptr;
 
     auto NEW_CHAR_ptr = new char [11];
@@ -278,6 +278,28 @@ TEST_CASE(alogrithm_base){
     qlibc::copy(TR_CLASS_buffer, TR_CLASS_buffer + 3, TR_CLASS_ptr);
     EXPECT(qlibc::equal(TR_CLASS_ptr, TR_CLASS_ptr + 3, TR_CLASS_buffer));
     delete[] TR_CLASS_ptr;
+
+    /// Test copy_backward
+    std::vector<int>buffer = {1,2,3,4,5,6,7};
+    std::vector<int>copy_buffer(buffer.size());
+    auto copy_backward_Iter =
+            std::copy_backward(buffer.begin(), buffer.end(), copy_buffer.end());
+    EXPECT_EQUAL(copy_backward_Iter, copy_buffer.begin());
+    EXPECT(qlibc::equal(buffer.begin(), buffer.end(), copy_buffer.begin()));
+
+    qlibc::vector<int>qlibc_vector{1,2,3,4,5,6,7};
+    auto qlibc_copy_backward_result = qlibc::copy_backward(qlibc_vector.begin(),
+                            qlibc_vector.begin() + 3, qlibc_vector.end());
+    EXPECT_EQUAL(qlibc::copy_backward(qlibc_vector.begin() + 2, qlibc_vector.begin() + 4,
+                                      qlibc_vector.end()), qlibc_vector.end() - 2);
+
+    qlibc::vector<int>qlibc_vector_emplace{1,2,3,4,5,6,7,8,9};
+    auto emplace_result = qlibc_vector_emplace.emplace(qlibc_vector_emplace.begin() + 3, 4);
+    EXPECT_EQUAL(*emplace_result, 4);
+    EXPECT_EQUAL(qlibc_vector_emplace.capacity(), (qlibc_vector_emplace.size() - 1) * 2);
+    EXPECT_EQUAL(*qlibc_vector_emplace.emplace(qlibc_vector_emplace.begin() + 2, 3), 3);
+    EXPECT_EQUAL(qlibc_vector_emplace.emplace(qlibc_vector_emplace.begin() + 2, 3),
+                 qlibc_vector_emplace.begin() + 2);
 }
 /// Test Case For Numeric Algorithm
 TEST_CASE(numeric){
@@ -319,7 +341,6 @@ TEST_CASE(vector1){
     EXPECT_EQUAL(*begin1, 5);
 
     qlibc::vector<int>vector_int = {1,2,3,4,5,6,7,8,9};
-    // std::cout << vector_int <<"\n";
     EXPECT_EQUAL(vector_int[3], 4);
     EXPECT(vector_int.size() == 9);
     EXPECT(vector_int.capacity() == 9);
@@ -329,7 +350,6 @@ TEST_CASE(vector1){
     EXPECT_EQUAL(vector_int.back(), 9);
     qlibc::vector<int>vector_copy_int(vector_int.begin(), vector_int.end());
     EXPECT(qlibc::equal(vector_int.begin(), vector_int.end(), vector_copy_int.begin()));
-    // std::cout << vector_copy_int << "\n";
     vector_copy_int.clear();
     EXPECT((vector_copy_int.empty() && !vector_copy_int.capacity()));
     qlibc::vector<int>New_vector_int = {1,2,3,4,5,6,7,8,9};
@@ -339,19 +359,21 @@ TEST_CASE(vector1){
     EXPECT_EQUAL(New_vector_int.capacity() ,18);
     EXPECT_EQUAL(New_vector_int.back(), 11);
     EXPECT_EQUAL(New_vector_int.size(), 11);
-    // std::cout << New_vector_int <<"\n";
     New_vector_int.pop_back();
     EXPECT_EQUAL(New_vector_int.back(), 10);
 
     qlibc::vector<int> const_vector = {1,2,3,4,5,6};
     auto _Iter = const_vector.cbegin();
     _Iter = const_vector.cend();
-    //*_Iter = 10;
     std::vector<int>const_std_vector = {1,2,3,4,5};
     auto _Iter_std = const_std_vector.cbegin();
     _Iter_std = const_std_vector.cend();
-    //*_Iter_std = 10;
-    EXPECT(!(const_std_vector != STD_vector));
+    EXPECT((const_std_vector != STD_vector));
+}
+
+TEST_CASE(vector2){
+    std::vector<int> std_vector_int{1,2,3,4,5,6};
+    EXPECT_EQUAL(*(std_vector_int.insert(std_vector_int.begin() + 2, 2)), 2);
 }
 int main(int argc, char * argv[]) {
     /// Run All Test Cases

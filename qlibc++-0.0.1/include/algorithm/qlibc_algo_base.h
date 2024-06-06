@@ -178,6 +178,16 @@ namespace qlibc{
                 (__last - __first) * sizeof(wchar_t));
         return __result + (__last - __first);
     }
+    /// copy_backward()
+    template<typename _BI1, typename _BI2>
+    inline _BI2 copy_backward(_BI1 __first, _BI1 __last, _BI2 __result){
+        --__first;
+        --__last;
+        auto __current = --__result;
+        for ( ; __last != __first; --__last, --__current)
+            *__current = *__last;
+        return ++__current;
+    }
 }
 
 #endif //QLIBC___0_0_1_QLIBC_ALGO_BASE_H
