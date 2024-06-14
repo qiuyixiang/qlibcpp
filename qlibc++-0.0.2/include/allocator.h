@@ -1,0 +1,5 @@
+#ifndef QLIBC___0_0_2_ALLOCATOR_H
+#define QLIBC___0_0_2_ALLOCATOR_H
+
+
+#endif //QLIBC___0_0_2_ALLOCATOR_H
