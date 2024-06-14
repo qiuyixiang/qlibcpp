@@ -3,4 +3,5 @@ project(qlibc___0_0_2)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(qlibc___0_0_2 main.cpp)
+add_executable(qlibc___0_0_2 main.cpp
+        test/test.h)
