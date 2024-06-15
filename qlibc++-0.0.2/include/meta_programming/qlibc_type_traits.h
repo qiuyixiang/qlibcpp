@@ -33,12 +33,13 @@ namespace qlibc{
     using false_type = integral_constant<bool, false>;
 
     /// Utility For Type Traits
+    /// Is_Same
     template<typename _Tp, typename _Up>
     struct is_same : public false_type { };
 
     template<typename _Tp>
     struct is_same<_Tp, _Tp> : public true_type { };
-
+    /// Conditional
     template<bool Bool, typename _True_Type, typename _False_Type>
     struct conditional {
         using type = _True_Type;
@@ -49,6 +50,20 @@ namespace qlibc{
     };
     template<bool Bool, typename _True_Type, typename _False_Type>
     using conditional_t = typename conditional<Bool, _True_Type, _False_Type>::type;
+
+    /// Remove Reference
+    template<typename _Tp>
+    struct remove_reference {
+        using type = _Tp;
+    };
+    template<typename _Tp>
+    struct remove_reference<_Tp&>{
+        using type = _Tp;
+    };
+    template<typename _Tp>
+    struct remove_reference<_Tp&&>{
+        using type = _Tp;
+    };
 }
 
 #endif //QLIBC___0_0_2_QLIBC_TYPE_TRAITS_H

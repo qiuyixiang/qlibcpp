@@ -2,7 +2,7 @@
 #define QLIBC___0_0_2_QLIBC_ITERATOR_H
 
 #include "./qlibc_iterator_base.h"
-
+#include "../utility/qlibc_move.h"
 namespace qlibc{
 
     /// Iterator Adaptor
@@ -153,6 +153,152 @@ namespace qlibc{
     QLIBC_CONSTEXPR inline bool
     operator<=(const reverse_iterator<_Iterator>& __lhs, const reverse_iterator<_Iterator>& __rhs){
         return __lhs.base() <= __rhs.base();
+    }
+    /// Back Insert Iterator
+    template<typename _Container>
+    class back_insert_iterator
+            : public qlibc::iterator<void, qlibc::output_iterator_tag, void, void, void>{
+    private:
+        _Container* _M_Base;
+    public:
+        using container_type = _Container;
+        explicit back_insert_iterator(_Container& __container);
+        ~back_insert_iterator() = default;
+        back_insert_iterator& operator=(const typename _Container::value_type& __value);
+        back_insert_iterator& operator=(typename _Container::value_type&& __value);
+        back_insert_iterator& operator++();
+        back_insert_iterator operator++(int);
+        back_insert_iterator& operator*();
+    };
+    template<typename _Container>
+    back_insert_iterator<_Container> &back_insert_iterator<_Container>::operator*() {
+        return *this;
+    }
+    template<typename _Container>
+    back_insert_iterator<_Container> back_insert_iterator<_Container>::operator++(int) {
+        return *this;
+    }
+    template<typename _Container>
+    back_insert_iterator<_Container> &back_insert_iterator<_Container>::operator++() {
+        return *this;
+    }
+    template<typename _Container>
+    back_insert_iterator<_Container> &back_insert_iterator<_Container>
+    ::operator=(typename _Container::value_type && __value) {
+        _M_Base->push_back(qlibc::move(__value));
+        return *this;
+    }
+    template<typename _Container>
+    back_insert_iterator<_Container> &back_insert_iterator<_Container>
+    ::operator=(const typename _Container::value_type &__value) {
+        _M_Base->push_back(__value);
+        return *this;
+    }
+    template<typename _Container>
+    back_insert_iterator<_Container>::
+            back_insert_iterator(_Container &__container) : _M_Base(qlibc::address_of(__container)) { }
+    /// Helper Function For Back Insert Iterator
+    template<typename _Container>
+    inline QLIBC_CONSTEXPR back_insert_iterator<_Container> back_inserter(_Container& __container){
+        return back_insert_iterator<_Container>(__container);
+    }
+    /// Front Insert Iterator
+    template<typename _Container>
+    class front_insert_iterator
+            : public qlibc::iterator<void, qlibc::output_iterator_tag, void, void, void>{
+    private:
+        _Container* _M_Base;
+    public:
+        using container_type = _Container;
+        explicit front_insert_iterator(_Container& __container);
+        ~front_insert_iterator() = default;
+        front_insert_iterator& operator=(const typename _Container::value_type& __value);
+        front_insert_iterator& operator=(typename _Container::value_type&& __value);
+        front_insert_iterator& operator++();
+        front_insert_iterator operator++(int);
+        front_insert_iterator& operator*();
+    };
+    template<typename _Container>
+    front_insert_iterator<_Container> &front_insert_iterator<_Container>::operator*() {
+        return *this;
+    }
+    template<typename _Container>
+    front_insert_iterator<_Container> front_insert_iterator<_Container>::operator++(int) {
+        return *this;
+    }
+    template<typename _Container>
+    front_insert_iterator<_Container> &front_insert_iterator<_Container>::operator++() {
+        return *this;
+    }
+    template<typename _Container>
+    front_insert_iterator<_Container> &front_insert_iterator<_Container>
+    ::operator=(typename _Container::value_type && __value) {
+        _M_Base->push_front(qlibc::move(__value));
+        return *this;
+    }
+    template<typename _Container>
+    front_insert_iterator<_Container> &front_insert_iterator<_Container>
+    ::operator=(const typename _Container::value_type &__value) {
+        _M_Base->push_front(__value);
+        return *this;
+    }
+    template<typename _Container>
+    front_insert_iterator<_Container>::
+    front_insert_iterator(_Container &__container) : _M_Base(qlibc::address_of(__container)) { }
+    /// Helper Function For Front Insert Iterator
+    template<typename _Container>
+    inline QLIBC_CONSTEXPR front_insert_iterator<_Container> front_inserter(_Container& __container){
+        return front_insert_iterator<_Container>(__container);
+    }
+    /// Insert Iterator
+    template<typename _Container>
+    class insert_iterator : public qlibc::iterator<void, qlibc::output_iterator_tag, void, void, void>{
+    private:
+        _Container* _M_Base;
+        typename _Container::iterator _M_Iter;
+    public:
+        using container_type = _Container;
+        insert_iterator(_Container& __container, typename _Container::iterator __iter);
+        ~insert_iterator() = default;
+        insert_iterator<_Container>& operator=(const typename _Container::value_type& __value);
+        insert_iterator<_Container>& operator=(typename _Container::value_type&& __value);
+        insert_iterator<_Container>& operator++();
+        insert_iterator<_Container> operator++(int);
+        insert_iterator<_Container>& operator*();
+    };
+    template<typename _Container>
+    insert_iterator<_Container> &insert_iterator<_Container>::operator*() {
+        return *this;
+    }
+    template<typename _Container>
+    insert_iterator<_Container> insert_iterator<_Container>::operator++(int) {
+        return *this;
+    }
+    template<typename _Container>
+    insert_iterator<_Container> &insert_iterator<_Container>::operator++() {
+        return *this;
+    }
+    template<typename _Container>
+    insert_iterator<_Container> &insert_iterator<_Container>::operator=(typename _Container::value_type && __value) {
+        _M_Iter = _M_Base->insert(_M_Iter, qlibc::move(__value));
+        ++_M_Iter;
+        return *this;
+    }
+    template<typename _Container>
+    insert_iterator<_Container> &insert_iterator<_Container>::operator=(const typename _Container::value_type&__value) {
+        _M_Iter = _M_Base->insert(_M_Iter, __value);
+        ++_M_Iter;
+        return *this;
+    }
+    template<typename _Container>
+    insert_iterator<_Container>::
+    insert_iterator(_Container &__container, typename _Container::iterator __iter)
+    : _M_Base(qlibc::address_of(__container)), _M_Iter(__iter) { }
+    /// Helper Function For Insert Iterator
+    template<typename _Container>
+    inline QLIBC_CONSTEXPR insert_iterator<_Container>
+    inserter(_Container& __container, typename _Container::iterator __iter){
+        return insert_iterator<_Container>(__container, __iter);
     }
 }
 #endif //QLIBC___0_0_2_QLIBC_ITERATOR_H

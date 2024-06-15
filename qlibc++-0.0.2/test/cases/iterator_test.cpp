@@ -57,10 +57,32 @@ namespace iterator_test{
         EXPECT((qlibc::make_reverse_iterator(linear_buffer.begin()) !=
                 qlibc::make_reverse_iterator(linear_buffer.end())));
     }
+    void inserter_iterator_test(){
+        EXPECT((qlibc::is_same<qlibc::output_iterator_tag,
+                qlibc::iterator_traits<qlibc::back_insert_iterator<std::vector<int>>>::iterator_category>::value));
+        EXPECT((qlibc::is_same<qlibc::iterator_traits
+                <qlibc::back_insert_iterator<std::vector<int>>>::value_type, void>::value));
+        std::vector<int>buffer;
+        auto back_inserter_iterator = qlibc::back_inserter(buffer);
+        *back_inserter_iterator = 10;
+        EXPECT_EQUAL(buffer[0], 10);
+        *back_inserter_iterator = 20;
+        EXPECT_EQUAL(buffer[1], 20);
+        EXPECT_EQUAL(buffer.size(), 2);
+        *back_inserter_iterator = 30;
+        auto inserter_iterator = qlibc::inserter(buffer, buffer.begin() + 1);
+        *inserter_iterator = 10;
+        EXPECT_EQUAL(buffer.size(), 4);
+        EXPECT_EQUAL(buffer[1], 10);
+        EXPECT_EQUAL(buffer[0], 10);
+        *inserter_iterator = 20;
+        EXPECT_EQUAL(buffer[2], 20);
+    }
     void main_test(){
         iterator_test::iterator_base();
         iterator_test::iterator_func();
-
+        iterator_test::reverse_iterator_test();
+        iterator_test::inserter_iterator_test();
         std::cout << "Iterator Library :\033[32m Passed\n\033[0m";
     }
 }

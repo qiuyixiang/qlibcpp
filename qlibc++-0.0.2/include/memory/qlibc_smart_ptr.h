@@ -1,0 +1,5 @@
+#ifndef QLIBC___0_0_2_QLIBC_SMART_PTR_H
+#define QLIBC___0_0_2_QLIBC_SMART_PTR_H
+
+
+#endif //QLIBC___0_0_2_QLIBC_SMART_PTR_H
