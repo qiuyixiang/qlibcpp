@@ -5,7 +5,7 @@ namespace container_test{
     namespace sequence{
 
         void forward_list_test(){
-
+            std::forward_list<int>;
         }
     }
     namespace associative{

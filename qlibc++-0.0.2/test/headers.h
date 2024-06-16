@@ -6,9 +6,11 @@
 #include "../include/memory.h"
 #include "../include/utility.h"
 #include "../include/numeric.h"
+#include "../include/forward_list.h"
 #include "../include/algorithm.h"
 
 #include <cassert>
+#include <forward_list>
 #include <iostream>
 #include <iterator>
 #include <vector>
